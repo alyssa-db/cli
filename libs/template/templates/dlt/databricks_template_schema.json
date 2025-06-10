@@ -1,0 +1,47 @@
+{
+    "welcome_message": "\nWelcome to the template for DLT Pipelines!",
+    "properties": {
+        "project_name": {
+            "type": "string",
+            "default": "pipelines_project",
+            "description": "Please provide the following details to tailor the template to your preferences.\n\nUnique name for this project\nproject_name",
+            "order": 1,
+            "pattern": "^[a-z0-9_]+$",
+            "pattern_match_failure_message": "Name must consist of lower case letters, numbers, and underscores."
+        },
+        "workspace_host": {
+            "type": "string",
+            "description": "\nWorkspace URL to deploy to:\nworkspace_host [example: mycompany.cloud.databricks.com]",
+            "order": 2,
+            "pattern": "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/?.*$",
+            "pattern_match_failure_message": "Must be a valid Databricks workspace URL"
+        },
+        "default_catalog": {
+            "type": "string",
+            "default": "{{default_catalog}}",
+            "pattern": "^\\w*$",
+            "pattern_match_failure_message": "Invalid catalog name.",
+            "description": "\nPlease provide a default catalog to use{{if eq (default_catalog) \"\"}} (leave blank when not using Unity Catalog){{end}}\ndefault_catalog",
+            "order": 3
+        },
+        "default_schema": {
+            "type": "string",
+            "default": "",
+            "pattern": "^\\w*$",
+            "pattern_match_failure_message": "Invalid schema name.",
+            "description": "\nPlease provide a default schema to use. Leave this blank to use the current username (recommended for collaboration).\ndefault_schema",
+            "order": 4
+        },
+        "language": {
+            "type": "string",
+            "default": "python",
+            "description": "\nInitial language for this project:\nlanguage",
+            "enum": [
+                "python",
+                "sql"
+            ],
+            "order": 5
+        }
+    },
+    "success_message": "\n\nYour new project has been created in the '{{.project_name}}' directory!\n\nRefer to the README.md file for \"getting started\" instructions!"
+}

@@ -5,6 +5,7 @@ This file only contains template directives; it is skipped for the actual output
 {{skip "__preamble"}}
 
 {{$isSQL := eq .language "sql"}}
+{{$isDLT := eq .is_dlt true}}
 
 {{if $isSQL}}
   {{skip "{{.project_name}}/resources/{{.project_name}}_pipeline/utilities/utils.py"}}
@@ -13,4 +14,8 @@ This file only contains template directives; it is skipped for the actual output
 {{else}}
   {{skip "{{.project_name}}/resources/{{.project_name}}_pipeline/transformations/sample_zones_{{.project_name}}.sql"}}
   {{skip "{{.project_name}}/resources/{{.project_name}}_pipeline/transformations/sample_trips_{{.project_name}}.sql"}}
+{{end}}
+
+{{if $isDLT}}
+  {{skip "{{.project_name}}/resources/{{.project_name}}_pipeline/{{.project_name}}.job.yml"}}
 {{end}}

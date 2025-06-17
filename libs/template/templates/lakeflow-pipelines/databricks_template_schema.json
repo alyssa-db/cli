@@ -9,6 +9,12 @@
             "pattern": "^[a-z0-9_]+$",
             "pattern_match_failure_message": "Name must consist of lower case letters, numbers, and underscores."
         },
+        "is_dlt": {
+            "skip_prompt_if": {},
+            "type": "boolean",
+            "description": "DLT pipelines using this template",
+            "default": false
+        },
         "default_catalog": {
             "type": "string",
             "default": "{{default_catalog}}",

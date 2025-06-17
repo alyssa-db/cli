@@ -32,11 +32,20 @@ type Writer interface {
 	// 2. The output directory where the template will be materialized.
 	Configure(ctx context.Context, configPath, outputDir string) error
 
+	// Finalize walks the template file tree, persists files to disk, and prints the success message.
+	Finalize(ctx context.Context) error
+
 	// Materialize the template to the local file system.
 	Materialize(ctx context.Context, r Reader) error
 
 	// Log telemetry for the template initialization event.
 	LogTelemetry(ctx context.Context)
+
+	// SetConfig sets a value in the template's config.
+	SetConfig(key string, value any)
+
+	// PromptForInput prompts the user for any missing config values.
+	PromptForInput(ctx context.Context, reader Reader) error
 }
 
 type defaultWriter struct {
@@ -47,6 +56,13 @@ type defaultWriter struct {
 	// Internal state
 	config   *config
 	renderer *renderer
+}
+
+// SetConfig sets a value in the template's config.
+func (tmpl *defaultWriter) SetConfig(key string, value any) {
+	if tmpl.renderer != nil {
+		tmpl.renderer.config[key] = value
+	}
 }
 
 func constructOutputFiler(ctx context.Context, outputDir string) (filer.Filer, error) {
@@ -81,7 +97,7 @@ func (tmpl *defaultWriter) Configure(ctx context.Context, configPath, outputDir 
 	return nil
 }
 
-func (tmpl *defaultWriter) promptForInput(ctx context.Context, reader Reader) error {
+func (tmpl *defaultWriter) PromptForInput(ctx context.Context, reader Reader) error {
 	readerFs, err := reader.FS(ctx)
 	if err != nil {
 		return err
@@ -143,15 +159,10 @@ func (tmpl *defaultWriter) printSuccessMessage(ctx context.Context) error {
 	return nil
 }
 
-func (tmpl *defaultWriter) Materialize(ctx context.Context, reader Reader) error {
-	err := tmpl.promptForInput(ctx, reader)
-	if err != nil {
-		return err
-	}
-
+func (tmpl *defaultWriter) Finalize(ctx context.Context) error {
 	// Walk the template file tree and compute in-memory representations of the
 	// output files.
-	err = tmpl.renderer.walk()
+	err := tmpl.renderer.walk()
 	if err != nil {
 		return err
 	}
@@ -163,6 +174,15 @@ func (tmpl *defaultWriter) Materialize(ctx context.Context, reader Reader) error
 	}
 
 	return tmpl.printSuccessMessage(ctx)
+}
+
+func (tmpl *defaultWriter) Materialize(ctx context.Context, reader Reader) error {
+	err := tmpl.PromptForInput(ctx, reader)
+	if err != nil {
+		return err
+	}
+
+	return tmpl.Finalize(ctx)
 }
 
 func (tmpl *defaultWriter) LogTelemetry(ctx context.Context) {

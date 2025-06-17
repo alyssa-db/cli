@@ -1,12 +1,12 @@
 # This is a Databricks asset bundle definition for {{.project_name}}.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
-bundle:
+{{$isDLT := eq .is_dlt true}}{{if $isDLT}}project{{else}}bundle{{end}}:
   name: {{.project_name}}
-  uuid: {{bundle_uuid}}
+  {{if not $isDLT}}uuid: {{bundle_uuid}}{{end}}
 
 include:
-  - resources/*.yml
-  - resources/*/*.yml
+  {{if $isDLT}}- ./*.yml{{else}}- resources/*.yml
+  - resources/*/*.yml{{end}}
 
 # Variable declarations. These variables are assigned in the dev/prod targets below.
 variables:
@@ -25,6 +25,7 @@ targets:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
     mode: development
     default: true
+    {{if $isDLT}}deploy_on_run: true{{end}}
     workspace:
       host: {{workspace_host}}
     variables:
@@ -36,11 +37,11 @@ targets:
     mode: production
     workspace:
       host: {{workspace_host}}
-      # We explicitly deploy to /Workspace/Users/{{user_name}} to make sure we only have a single copy.
-      root_path: /Workspace/Users/{{user_name}}/.bundle/${bundle.name}/${bundle.target}
-    permissions:
+      {{if not $isDLT}}# We explicitly deploy to /Workspace/Users/{{user_name}} to make sure we only have a single copy.
+      root_path: /Workspace/Users/{{user_name}}/.bundle/${bundle.name}/${bundle.target}}{{end}}
+    {{if $isDLT}}owner: user@company.com{{else}}permissions:
       - {{if is_service_principal}}service_principal{{else}}user{{end}}_name: {{user_name}}
-        level: CAN_MANAGE
+        level: CAN_MANAGE{{end}}
     variables:
       catalog: {{.default_catalog}}
       schema: {{template `prod_schema` .}}
